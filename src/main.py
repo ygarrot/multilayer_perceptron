@@ -8,40 +8,47 @@ class Layer():
         self.init_epsilon = [-sys.float_info.epsilon, sys.float_info.epsilon]
         self.weight = np.random.rand(activation_units, number_of_features) # * init_epsilon) - init_epsilon
         self.bias = np.ones(number_of_features)
+        self.h = self.weight
 
     # [w11 w12 w13]  * [x1 x2]
     # [w21 w22 w23]
     def z(self, x):
-        print(x.shape)
-        print(self.weight.shape)
-        print(self.weight)
         return (x @ self.weight) + self.bias
 
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
     def feedforward(self, x):
-        return self.sigmoid(self.z(x))
-
-    def backpropagation(activation, y):
-        for i in range(activation, 0):
-            delta = activation - y
+        self.h = self.sigmoid(self.z(x))
+        return h
 
 class MultilayerPerceptron():
     #input[x] activation1[x, ...x] activation2[x, ...x] output[2, ...x]
     def __init__(self, x):
         self.x = x
+        self.lr = 0.1
         self.layers = [Layer(x.shape[0], x.shape[1]), Layer(2, x.shape[0])]
 
+    def loss(self, p, y):
+        return -((y @ np.log(p) + (1 - y) @ log(1 - p)) / y.shape[0])
 
     def forward_propagation(self):
-        # activation = [x, a2, a3 ... ]
         x = self.x
         for i, layer in enumerate(self.layers):
-            # print(x.shape)
-            # print(x)
             x = layer.feedforward(x)
-            # print(x)
+        return x
+
+    def backward_propagation(self, y):
+        fw = self.forward_propagation()
+        error = y - x.layers[-1]
+        for i in range(self.layer.length)
+            delta[i] = (layer.weight.T @ delta[i + 1]) @ layer.h @ (1 - layer.h)
+        # gradient descent
+        for layer in enumerate(self.layers):
+            layer.weight -= self.lr * delta[i]
+
+
+        return 
 
 def train(path):
     # data = pd.read_csv(path)
@@ -51,6 +58,7 @@ def train(path):
         [1, 2, 3, 4],
         [1, 2, 3, 4]])
     mp = MultilayerPerceptron(data)
+    # mp.forward_propagation()
     mp.forward_propagation()
 
 
