@@ -9,8 +9,8 @@ class Layer():
         self.init_epsilon = [-sys.float_info.epsilon, sys.float_info.epsilon]
         self.weight = np.random.rand(number_of_features, activation_units) # * init_epsilon) - init_epsilon
         self.bias = np.ones(activation_units)
-        print(self.weight)
-        self.h = self.weight
+        # print(self.weight)
+        # self.h = self.weight
 
     # [w11 w12 w13]  * [x1 x2]
     # [w21 w22 w23]
@@ -21,7 +21,7 @@ class Layer():
         return 1 / (1 + np.exp(-x))
 
     def feedforward(self, x):
-        self.h = self.sigmoid(self.z(x))
+        self.h = np.array(self.sigmoid(self.z(x)))
         return self.h
 
 class MultilayerPerceptron():
@@ -38,41 +38,49 @@ class MultilayerPerceptron():
         return x
 
     def backward_propagation(self, x, y):
-        fw = self.forward_propagation(x)
-        error = np.array([y - self.layers[-1].h])
+        fw = np.array(self.forward_propagation(x))
+        error = np.array([y - fw])
         delta = []
-        t1 = np.array([1,2])
-        t2 = np.array([1])
-        print(t1@t2)
         for i, layer in enumerate(self.layers[::-1]):
-            error = (layer.weight.T @ error) @ (layer.h @ (1 - layer.h))
+            if (i == 0):
+                e = (layer.weight @ error)
+                d = (layer.h * (1 - layer.h))
+                error = e @ d
+            else:
+                e = (layer.weight.T @ error)
+                d = (layer.h @ (1 - layer.h))
+                error = np.array([e * d])
             delta.append(error)
 
-        for layer in enumerate(self.layers):
-            layer.weight -= self.lr * delta[i]
-        return 
+        test = np.array([np.array(x).reshape((-1, 1)), self.layers[1].h])
+        for i, layer in enumerate(self.layers):
+            # print("weight [{}] = {}".format(i, layer.weight))
+            print(delta[i], test[i].T)
+            layer.weight += (self.lr * ((delta[i] @ test[i].T)))
+            # layer.weight /= layer.weight.shape[0]
+            # layer.bias += self.lr * (np.sum(delta[i]))
+            # layer.bias /= layer.h.shape[0]
 
 def train(path):
     # data = pd.read_csv(path)
-    # data = np.array([
-    #     [1, 2, 3, 4],
-    #     [1, 2, 3, 4],
-    #     [1, 2, 3, 4],
-    #     [1, 2, 3, 4]])
     data = np.array([
             [0, 0, 1, 1],
             [0, 1, 0, 1]
             ])
     result = np.array([0, 1, 1, 0])
-    epoch = 1000
+    epoch = 5000
     mp = MultilayerPerceptron()
-    for _ in range(1000):
+    for _ in range(epoch):
         i = random.randint(0, len(result) - 1)
         x = [data[0][i], data[1][i]]
         y = result[i]
+        # print("x, y = ", x, y)
         mp.backward_propagation(x, y)
 
-    # mp.forward_propagation()
+    print(mp.forward_propagation([0, 0]))
+    print(mp.forward_propagation([0, 1]))
+    print(mp.forward_propagation([1, 0]))
+    print(mp.forward_propagation([1, 1]))
 
 
 def main():
