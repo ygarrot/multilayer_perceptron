@@ -42,24 +42,23 @@ class MultilayerPerceptron():
         error = np.array([y - fw])
         delta = []
         for i, layer in enumerate(self.layers[::-1]):
+            d = (layer.h * (1 - layer.h))
             if (i == 0):
                 e = (layer.weight @ error)
-                d = (layer.h * (1 - layer.h))
-                error = e @ d
+                error = e * d
             else:
                 e = (layer.weight.T @ error)
-                d = (layer.h @ (1 - layer.h))
                 error = np.array([e * d])
             delta.append(error)
 
-        test = np.array([np.array(x).reshape((-1, 1)), self.layers[1].h])
+        delta = delta[::-1]
+        test = np.array([np.array(x), self.layers[1].h.reshape((-1, 1))])
         for i, layer in enumerate(self.layers):
             # print("weight [{}] = {}".format(i, layer.weight))
-            print(delta[i], test[i].T)
             layer.weight += (self.lr * ((delta[i] @ test[i].T)))
-            # layer.weight /= layer.weight.shape[0]
-            # layer.bias += self.lr * (np.sum(delta[i]))
-            # layer.bias /= layer.h.shape[0]
+            layer.weight /= layer.weight.shape[0]
+            layer.bias += self.lr * (np.sum(delta[i]))
+            layer.bias /= layer.h.shape[0]
 
 def train(path):
     # data = pd.read_csv(path)
