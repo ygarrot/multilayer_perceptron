@@ -12,18 +12,16 @@ class Layer():
     def __init__(self, number_of_features, activation_units, layer_type):
         # init_epsilon = [[-sys.float_info.epsilon, sys.float_info.epsilon]]
         # self.bias = np.random.rand(activation_units, 1)
-        # self.activation_function = sigmoid
-        # self.weight = (np.random.rand(activation_units, number_of_features))#  @ init_epsilon) - init_epsilon
-        self.weight = np.random.normal(0.0, pow(number_of_features, -0.5), (activation_units, number_of_features))
+        self.weight = (np.random.rand(activation_units, number_of_features))#  @ init_epsilon) - init_epsilon
+        # self.weight = np.random.normal(0.0, pow(number_of_features, -0.5), (activation_units, number_of_features))
         self.bias = np.ones(activation_units)
-        self.activation_function = scipy.special.expit
+        self.activation_function = scipy.special.expit #sigmoid
         self.type = layer_type
 
     # [w11 w12 w13] . [x1 x2]
     # [w21 w22 w23]
     def z(self, x):
-        # print(self.weight, x)
-        return np.dot(self.weight, x)# + self.bias
+        return np.dot(self.weight + self.bias, x)
 
     def feedforward(self, x):
         self.h = self.activation_function(self.z(x))
@@ -31,7 +29,7 @@ class Layer():
 
 class MultilayerPerceptron():
     def __init__(self):
-        self.lr = 0.3
+        self.lr = 0.1
         self.layers = [Layer(2, 2, layer_type="input_layer"),
                        Layer(2, 1, layer_type="output_layer")]
 
@@ -52,11 +50,10 @@ class MultilayerPerceptron():
 
         t = [self.layers[0].h, inputs]
         for i, layer in enumerate(self.layers[::-1]):
-            gradient = (layer.h * (1.0 - layer.h))
-            e = error * gradient
+            gradient = error * (layer.h * (1.0 - layer.h))
             error = np.dot(layer.weight.T, error)
-            layer.weight += self.lr * np.dot(e, t[i].T)
-            # layer.bias += gradient
+            layer.weight += self.lr * np.dot(gradient, t[i].T)
+            layer.bias = layer.bias + (self.lr * gradient)
 
 def train(path):
     # data = pd.read_csv(path)
