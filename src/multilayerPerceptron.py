@@ -36,8 +36,9 @@ class Layer:
         W = self.weight
         dZ = self.Activation_function(A_prev, d=True)
         m = A_prev.shape[0]
-        dW = np.dot(dZ, self.A_prev.T)
-        db = np.sum(np.matrix(dZ), axis=1)
+
+        dW = np.dot(dZ, self.A_prev.T) / m
+        db = np.sum(np.matrix(dZ), axis=1) / m
         dA_prev = np.dot(W.T, dZ)
  
         assert(dA_prev.shape == self.A_prev.shape)
@@ -62,7 +63,7 @@ class MultilayerPerceptron:
 
     def loss(self, p, y):
         m = -y.shape[0]
-    #     # return -np.squeeze(np.sum((y @ np.log(p)) + ((1 - y) @ np.log(1 - p))) /m)
+        # return -np.squeeze(np.sum((y @ np.log(p)) + ((1 - y) @ np.log(1 - p))) /m)
         cost = (1./m) * (-np.dot(y,np.log(p).T) - np.dot(1-y, np.log(1-p).T))
         return np.squeeze(cost)
 
@@ -75,7 +76,7 @@ class MultilayerPerceptron:
         AL = self.forward_propagation(X)
         Y = Y.reshape(AL.shape)
         # A_prev = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
-        # A_prev = AL-Y
+        A_prev = AL-Y
         W = self.layers[-1].weight
         for i in range(len(self.layers)-1, -1, -1):
             A_prev, W, dW, db = self.layers[i].linear_backward(A_prev, W)
