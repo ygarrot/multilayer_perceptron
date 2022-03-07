@@ -22,7 +22,8 @@ class Layer:
                  layer_type, activation_function=sigmoid):
         self.weight = np.random.rand(activation_units, number_of_features) * 0.01
         self.bias = np.zeros((activation_units, 1))
-        self.Activation_function = activation_function
+        # self.bias = np.random.rand(activation_units, 1)
+        self.activation_function = activation_function
         self.type = layer_type
         assert(self.weight.shape == (activation_units, number_of_features))
         assert(self.bias.shape == (activation_units, 1))
@@ -32,9 +33,9 @@ class Layer:
         assert(self.z.shape == (self.weight.shape[0], x.shape[1]))
         return self.z
 
-    def linear_backward(self, A_prev, W):
+    def linear_backward(self, A_prev):
         W = self.weight
-        dZ = self.Activation_function(A_prev, d=True)
+        dZ = self.activation_function(A_prev, d=True)
         m = A_prev.shape[0]
 
         dW = np.dot(dZ, self.A_prev.T) / m
@@ -43,8 +44,8 @@ class Layer:
  
         assert(dA_prev.shape == self.A_prev.shape)
         assert(dW.shape == W.shape)
-        # assert (db.shape == b.shape)
-        return dA_prev, self.weight, dW, db
+        assert (db.shape == self.bias.shape)
+        return dA_prev, dW, db
 
     def update_parameters(self, rate, dW, db):
         self.weight -= rate * dW
@@ -52,20 +53,18 @@ class Layer:
 
     def linear_activation_forward(self, A_prev):
         self.A_prev = A_prev
-        self.A = self.Activation_function(self.linear_forward(A_prev))
+        self.A = self.activation_function(self.linear_forward(A_prev))
         assert (self.A.shape == (self.weight.shape[0], A_prev.shape[1]))
         return self.A
 
 class MultilayerPerceptron:
-    def __init__(self, layers, lr=0.001):
+    def __init__(self, layers, lr=0.0001):
         self.lr = lr
         self.layers = layers
 
     def loss(self, p, y):
-        m = -y.shape[0]
-        # return -np.squeeze(np.sum((y @ np.log(p)) + ((1 - y) @ np.log(1 - p))) /m)
-        cost = (1./m) * (-np.dot(y,np.log(p).T) - np.dot(1-y, np.log(1-p).T))
-        return np.squeeze(cost)
+        m = y.shape[0]
+        return np.squeeze(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)) / -m)
 
     def forward_propagation(self, x):
         for layer in self.layers:
@@ -77,8 +76,7 @@ class MultilayerPerceptron:
         Y = Y.reshape(AL.shape)
         # A_prev = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
         A_prev = AL-Y
-        W = self.layers[-1].weight
         for i in range(len(self.layers)-1, -1, -1):
-            A_prev, W, dW, db = self.layers[i].linear_backward(A_prev, W)
+            A_prev, dW, db = self.layers[i].linear_backward(A_prev)
             self.layers[i].update_parameters(self.lr, dW, db)
         return AL

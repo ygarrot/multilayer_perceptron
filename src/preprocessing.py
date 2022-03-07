@@ -52,7 +52,7 @@ def main():
     train(x_train, y_train)
 
 def train(x_train, y_train):
-    epochs = 1_00
+    epochs = 1_000
     x_len = x_train.shape[1]
     layers = [
         Layer(x_len, x_len, layer_type="input_layer", activation_function=relu),
@@ -64,14 +64,13 @@ def train(x_train, y_train):
     mp = MultilayerPerceptron(layers)
     losses = []
     for epoch in range(epochs):
-        print(x_train.shape, y_train.shape)
         p = mp.backward_propagation(x_train.T, np.array(y_train).T)
         loss = mp.loss(p, y_train)
         losses.append(loss)
         print(f"epoch {epoch}/{epochs} - loss: {loss} - val_loss: {loss}")
 
     pd.DataFrame(losses).plot()
-    plt.show()
+    plt.savefig('loss.png')
 
 if __name__ == '__main__':
     main()
