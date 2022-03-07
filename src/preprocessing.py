@@ -37,12 +37,19 @@ def add_columns_name(df):
     df.reset_index(drop=True, inplace=True)
     df.to_csv("./resources/data_p.csv", index=False)
 
+import sys
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=str, default="./resources/data.csv", help="dataset_train.csv")
     args = parser.parse_args()
     df = pd.read_csv(args.path).drop(columns=['ID'])
     df['Diagnosis'] = df['Diagnosis'] == 'M'
+
+    cor  = abs(df.corr())
+    above_0 = cor[cor["Diagnosis"] > 0.2]
+    df = df[above_0.index]
+
     # normalized data
     x_train, x_test, y_train, y_test = test_train_split(df.head(100), 0.8)
 
@@ -52,23 +59,32 @@ def main():
     train(x_train, y_train)
 
 def train(x_train, y_train):
-    epochs = 1_000
+    epochs = 1_00
     x_len = x_train.shape[1]
     layers = [
-        Layer(x_len, x_len, layer_type="input_layer", activation_function=relu),
-        Layer(x_len, x_len, layer_type="hidden_layer", activation_function=relu),
-        Layer(x_len, x_len, layer_type="hidden_layer", activation_function=relu),
+        Layer(x_len, x_len, layer_type="input_layer", activation_function=sigmoid),
+        Layer(x_len, x_len, layer_type="hidden_layer", activation_function=sigmoid),
+        # Layer(x_len, 1, layer_type="output_layer", activation_function=softmax)
         Layer(x_len, 1, layer_type="output_layer")
     ]
 
     mp = MultilayerPerceptron(layers)
     losses = []
     for epoch in range(epochs):
-        p = mp.backward_propagation(x_train.T, np.array(y_train).T)
-        loss = mp.loss(p, y_train)
+        i = np.random.randint(0, x_train.shape[0])
+        y = y_train
+        x = x_train[i][np.newaxis,:].T
+        p = mp.backward_propagation(x, y[i])
+        # p = mp.backward_propagation(x_train.T, np.array(y_train).T)
+        loss = mp.loss(p, np.array(y_train).T)
         losses.append(loss)
         print(f"epoch {epoch}/{epochs} - loss: {loss} - val_loss: {loss}")
 
+    y = y_train
+    x = x_train[i][np.newaxis,:].T
+    i = np.random.randint(0, x_train.shape[0])
+    p = mp.backward_propagation(x, y[i])
+    print(f"{i}={p}, should be: {y[i]}")
     pd.DataFrame(losses).plot()
     plt.savefig('loss.png')
 
