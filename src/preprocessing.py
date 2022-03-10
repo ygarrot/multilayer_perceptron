@@ -48,10 +48,10 @@ def main():
 
     cor  = abs(df.corr())
     above_0 = cor[cor["Diagnosis"] > 0.2]
-    df = df[above_0.index]
+    # df = df[above_0.index]
 
     # normalized data
-    x_train, x_test, y_train, y_test = test_train_split(df.head(100), 0.8)
+    x_train, x_test, y_train, y_test = test_train_split(df, 0.8)
 
     x_train=(x_train-x_train.mean())/x_train.std()
     x_train = x_train.to_numpy(dtype=np.float64)
@@ -59,7 +59,7 @@ def main():
     train(x_train, y_train)
 
 def train(x_train, y_train):
-    epochs = 1_00
+    epochs = 1_0000
     x_len = x_train.shape[1]
     layers = [
         Layer(x_len, 20, layer_type="input_layer", activation_function=sigmoid),
@@ -70,12 +70,12 @@ def train(x_train, y_train):
 
     mp = MultilayerPerceptron(layers)
     losses = []
-    for epoch in range(epochs):
+    for epoch in range(1, epochs):
         i = np.random.randint(0, x_train.shape[0])
         y = y_train
         x = x_train[i][np.newaxis,:].T
-        p = mp.backward_propagation(x, y[i], epoch)
-        # p = mp.backward_propagation(x_train.T, np.array(y_train).T)
+        # p = mp.backward_propagation(x, y[i], epoch)
+        p = mp.backward_propagation(x_train.T, np.array(y_train).T, epoch)
         loss = mp.loss(p, np.array(y_train).T)
         losses.append(loss)
         print(f"epoch {epoch}/{epochs} - loss: {loss} - val_loss: {loss}")

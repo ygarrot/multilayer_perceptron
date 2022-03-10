@@ -65,27 +65,27 @@ class Layer:
         assert (self.db.shape == self.bias.shape)
         return dA_prev
 
-    # def update_parameters(self):
-    #     self.weight -= self.rate * self.dW
-    #     self.bias -= self.rate * self.db
+    def update_parameters(self):
+        self.weight -= self.rate * self.dW
+        self.bias -= self.rate * self.db
 
-    def update_parameters(self, n, beta1=0.9, beta2=0.999):
-        epsilon=10e-8
-        vdw = self.vdW /(1-np.power(beta1, n))
-        sdw = self.sdW /(1-np.power(beta2, n))
+    # def update_parameters(self, n, beta1=0.9, beta2=0.999):
+    #     epsilon=10e-8
+    #     vdw = self.vdW /(1-np.power(beta1, n))
+    #     sdw = self.sdW /(1-np.power(beta2, n))
 
-        vdb = self.vdb /(1-np.power(beta1, n))
-        sdb = self.sdb /(1-np.power(beta2, n))
+    #     vdb = self.vdb /(1-np.power(beta1, n))
+    #     sdb = self.sdb /(1-np.power(beta2, n))
 
-        self.weight -= self.rate * (vdw / (np.sqrt(sdw) + epsilon))
-        self.bias -= self.rate * (vdb / (np.sqrt(sdb) + epsilon))
+    #     self.weight -= self.rate * (vdw / (np.sqrt(sdw) + epsilon))
+    #     self.bias -= self.rate * (vdb / (np.sqrt(sdb) + epsilon))
 
-    def adam(self, beta1=0.9, beta2=0.999):
-        self.vdW = beta1 * self.vdW + (1 - beta1) * self.dW
-        self.sdW = beta1 * self.sdW + (1 - beta2) * (self.dW**2)
+    # def adam(self, beta1=0.9, beta2=0.999):
+    #     self.vdW = beta1 * self.vdW + (1 - beta1) * self.dW
+    #     self.sdW = beta1 * self.sdW + (1 - beta2) * (self.dW**2)
 
-        self.vdb = beta1 * self.vdb + (1 - beta1) * self.db
-        self.sdb = beta1 * self.sdb + (1 - beta2) * (np.power(self.db, 2))
+    #     self.vdb = beta1 * self.vdb + (1 - beta1) * self.db
+    #     self.sdb = beta1 * self.sdb + (1 - beta2) * (np.power(self.db, 2))
 
 
 class MultilayerPerceptron:
@@ -109,8 +109,8 @@ class MultilayerPerceptron:
         A_prev = AL-Y
         for i in range(len(self.layers)-1, -1, -1):
             A_prev = self.layers[i].linear_backward(A_prev)
-            self.layers[i].adam()
-            self.layers[i].update_parameters(n)
+            # self.layers[i].adam()
+            self.layers[i].update_parameters()
         return AL
 
     def load(self):
