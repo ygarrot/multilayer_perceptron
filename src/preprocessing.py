@@ -62,10 +62,10 @@ def train(x_train, y_train):
     epochs = 1_00
     x_len = x_train.shape[1]
     layers = [
-        Layer(x_len, x_len, layer_type="input_layer", activation_function=sigmoid),
-        Layer(x_len, x_len, layer_type="hidden_layer", activation_function=sigmoid),
+        Layer(x_len, 20, layer_type="input_layer", activation_function=sigmoid),
+        Layer(20, 10, layer_type="hidden_layer", activation_function=sigmoid),
         # Layer(x_len, 1, layer_type="output_layer", activation_function=softmax)
-        Layer(x_len, 1, layer_type="output_layer")
+        Layer(10, 1, layer_type="output_layer")
     ]
 
     mp = MultilayerPerceptron(layers)
@@ -74,7 +74,7 @@ def train(x_train, y_train):
         i = np.random.randint(0, x_train.shape[0])
         y = y_train
         x = x_train[i][np.newaxis,:].T
-        p = mp.backward_propagation(x, y[i])
+        p = mp.backward_propagation(x, y[i], epoch)
         # p = mp.backward_propagation(x_train.T, np.array(y_train).T)
         loss = mp.loss(p, np.array(y_train).T)
         losses.append(loss)
@@ -83,7 +83,7 @@ def train(x_train, y_train):
     y = y_train
     x = x_train[i][np.newaxis,:].T
     i = np.random.randint(0, x_train.shape[0])
-    p = mp.backward_propagation(x, y[i])
+    p = mp.backward_propagation(x, y[i], epoch)
     print(f"{i}={p}, should be: {y[i]}")
     pd.DataFrame(losses).plot()
     plt.savefig('loss.png')
