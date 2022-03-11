@@ -42,7 +42,7 @@ class Layer:
         self.activation_function = activation_function
         self.type = layer_type
         self.rate = rate
-        # self.init_adam()
+        self.init_adam()
 
         assert(self.weight.shape == (activation_units, number_of_features))
         assert(self.bias.shape == (activation_units, 1))
@@ -69,9 +69,9 @@ class Layer:
         assert (self.db.shape == self.bias.shape)
         return dA_prev
 
-    def update_parameters(self):
-        self.weight -= self.rate * self.dW
-        self.bias -= self.rate * self.db
+    def update_parameters(self, rate):
+        self.weight -= rate * self.dW
+        self.bias -= rate * self.db
 
     # def rmsprop(self):
     #     self.sdW = self.beta1 * self.sdW + (1 - self.beta2) * (self.dW**2)
@@ -85,17 +85,20 @@ class Layer:
     #     self.rmsprop()
     #     self.momentum()
 
-    # def update_parameters(self, n, beta1=0.9, beta2=0.999):
+    # def update_parameters(self, rate, n):
     #     epsilon=10e-8
-    #     vdw = self.vdW /(1-np.power(beta1, n))
+    #     vdw = self.vdW /(1-np.power(self.beta1, n))
 
-    #     vdb_corrected = self.vdb /(1-np.power(beta1, n))
-    #     sdb_corrected = self.sdb /(1-np.power(beta2, n))
+    #     pow_1 = (1 - np.power(self.beta1, n))
+    #     pow_2 = (1 - np.power(self.beta2, n))
+    #     vdw_corrected = self.vdW /pow_1
+    #     sdw_corrected = self.sdW / pow_2
 
-    #     self.weight -= self.rate * (vdw / (np.sqrt(sdw_corrected) + epsilon))
-    #     self.bias -= self.rate * (vdb / (np.sqrt(sdb_corrected) + epsilon))
+    #     vdb_corrected = self.vdb / pow_1
+    #     sdb_corrected = self.sdb / pow_2
 
-
+    #     self.weight -= self.rate * (vdw_corrected / (np.sqrt(sdw_corrected) + epsilon))
+    #     self.bias -= self.rate * (vdb_corrected / (np.sqrt(sdb_corrected) + epsilon))
 
 class MultilayerPerceptron:
     def __init__(self, layers, lr=0.01, path="mp.pickle"):
@@ -112,14 +115,13 @@ class MultilayerPerceptron:
             x = layer.linear_activation_forward(x)
         return x
 
-    def backward_propagation(self, X, Y, n):
+    def backward_propagation(self, X, Y, rate, n):
         AL = self.forward_propagation(X)
         Y = Y.reshape(AL.shape)
         A_prev = AL-Y
         for i in range(len(self.layers)-1, -1, -1):
             A_prev = self.layers[i].linear_backward(A_prev)
-            # self.layers[i].adam()
-            self.layers[i].update_parameters()
+            self.layers[i].update_parameters(rate)
         return AL
 
     def load(self):

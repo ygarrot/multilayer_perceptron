@@ -44,6 +44,15 @@ def select_features(df):
     above_0 = cor[cor["Diagnosis"] > 0.2]
     return df[above_0.index]
 
+def init_mp(x_len):
+    layers = [
+        Layer(x_len, 20, layer_type="input_layer", activation_function=sigmoid),
+        Layer(20, 10, layer_type="hidden_layer", activation_function=sigmoid),
+        # Layer(10, 1, layer_type="output_layer", activation_function=softmax)
+        Layer(10, 1, layer_type="output_layer")
+    ]
+    return MultilayerPerceptron(layers)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=str, default="./resources/data.csv", help="dataset_train.csv")
@@ -57,7 +66,14 @@ def main():
     x_train=(x_train-x_train.mean())/x_train.std()
     x_train = x_train.to_numpy(dtype=np.float64)
     y_train = y_train.to_numpy(dtype=np.float64)
-    train(x_train, y_train)
+
+    x_test=(x_test-x_test.mean())/x_test.std()
+    x_test = x_test.to_numpy(dtype=np.float64)
+    y_test = y_test.to_numpy(dtype=np.float64)
+
+    mp = train(x_train, y_train, init_mp(x_train.shape[1]))
+    print((mp.backward_propagation(x_test.T, y_test, 0, 0.1) > 0.5).astype(dtype=np.float64))
+    print(y_test)
 
 def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
     assert inputs.shape[0] == targets.shape[0]
@@ -71,33 +87,26 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
             excerpt = slice(start_idx, start_idx + batchsize)
         yield inputs[excerpt], targets[excerpt]
 
-def train(x_train, y_train):
+def train(x_train, y_train, mp):
     epochs = 1_00
-    x_len = x_train.shape[1]
+    # epochs = 5
     losses = []
-    layers = [
-        Layer(x_len, 20, layer_type="input_layer", activation_function=sigmoid),
-        Layer(20, 10, layer_type="hidden_layer", activation_function=sigmoid),
-        # Layer(10, 1, layer_type="output_layer", activation_function=softmax)
-        Layer(10, 1, layer_type="output_layer")
-    ]
-
-    mp = MultilayerPerceptron(layers)
+    batchsize = 2**4
+    decay_rate=0.1
+    lr = 0.1
     for epoch in range(1, epochs):
-        for batch in iterate_minibatches(x_train, y_train, 2**8, shuffle=True):
+        # lr *= 1/1+(decay_rate*epoch)
+        for batch in iterate_minibatches(x_train, y_train, batchsize, shuffle=True):
             x_batch, y_batch = batch
-            p = mp.backward_propagation(x_batch.T, y_batch, epoch)
-            loss = mp.loss(p, np.array(y_batch))
-            losses.append(loss)
-            print(f"epoch {epoch}/{epochs} - loss: {loss} - val_loss: {loss}")
+            p = mp.backward_propagation(x_batch.T, y_batch, lr, epoch)
+        loss = mp.loss(p, np.array(y_batch))
+        losses.append(loss)
+        print(f"epoch {epoch}/{epochs} - loss: {loss} - val_loss: {loss}")
 
-    y = y_train
-    x = x_train[i][np.newaxis,:].T
-    i = np.random.randint(0, x_train.shape[0])
-    p = mp.backward_propagation(x, y[i], epoch)
-    print(f"{i}={p}, should be: {y[i]}")
     pd.DataFrame(losses).plot()
     plt.savefig('loss.png')
+    print(batchsize)
+    return mp
 
 if __name__ == '__main__':
     main()
