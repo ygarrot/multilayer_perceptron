@@ -25,6 +25,14 @@ def sigmoid(z, d=False):
     return z
 
 class Layer:
+    def init_adam(self):
+        self.vdW = np.zeros(self.weight.shape)
+        self.vdb = np.zeros(self.bias.shape)
+        self.sdW = np.zeros(self.weight.shape)
+        self.sdb = np.zeros(self.bias.shape)
+        self.beta1=0.9
+        self.beta2=0.999
+
     def __init__(self, number_of_features, activation_units,
                  layer_type, activation_function=sigmoid, rate=0.1):
         self.weight = np.random.rand(activation_units, number_of_features) * 0.01
@@ -34,11 +42,7 @@ class Layer:
         self.activation_function = activation_function
         self.type = layer_type
         self.rate = rate
-
-        self.vdW = np.zeros(self.weight.shape)
-        self.vdb = np.zeros(self.bias.shape)
-        self.sdW = np.zeros(self.weight.shape)
-        self.sdb = np.zeros(self.bias.shape)
+        # self.init_adam()
 
         assert(self.weight.shape == (activation_units, number_of_features))
         assert(self.bias.shape == (activation_units, 1))
@@ -69,27 +73,32 @@ class Layer:
         self.weight -= self.rate * self.dW
         self.bias -= self.rate * self.db
 
+    # def rmsprop(self):
+    #     self.sdW = self.beta1 * self.sdW + (1 - self.beta2) * (self.dW**2)
+    #     self.sdb = self.beta1 * self.sdb + (1 - self.beta2) * (np.power(self.db, 2))
+
+    # def momentum(self):
+    #     self.vdW = self.beta1 * self.vdW + (1 - self.beta1) * self.dW
+    #     self.vdb = self.beta1 * self.vdb + (1 - self.beta1) * self.db
+
+    # def adam(self):
+    #     self.rmsprop()
+    #     self.momentum()
+
     # def update_parameters(self, n, beta1=0.9, beta2=0.999):
     #     epsilon=10e-8
     #     vdw = self.vdW /(1-np.power(beta1, n))
-    #     sdw = self.sdW /(1-np.power(beta2, n))
 
-    #     vdb = self.vdb /(1-np.power(beta1, n))
-    #     sdb = self.sdb /(1-np.power(beta2, n))
+    #     vdb_corrected = self.vdb /(1-np.power(beta1, n))
+    #     sdb_corrected = self.sdb /(1-np.power(beta2, n))
 
-    #     self.weight -= self.rate * (vdw / (np.sqrt(sdw) + epsilon))
-    #     self.bias -= self.rate * (vdb / (np.sqrt(sdb) + epsilon))
+    #     self.weight -= self.rate * (vdw / (np.sqrt(sdw_corrected) + epsilon))
+    #     self.bias -= self.rate * (vdb / (np.sqrt(sdb_corrected) + epsilon))
 
-    # def adam(self, beta1=0.9, beta2=0.999):
-    #     self.vdW = beta1 * self.vdW + (1 - beta1) * self.dW
-    #     self.sdW = beta1 * self.sdW + (1 - beta2) * (self.dW**2)
-
-    #     self.vdb = beta1 * self.vdb + (1 - beta1) * self.db
-    #     self.sdb = beta1 * self.sdb + (1 - beta2) * (np.power(self.db, 2))
 
 
 class MultilayerPerceptron:
-    def __init__(self, layers, lr=0.001, path="mp.pickle"):
+    def __init__(self, layers, lr=0.01, path="mp.pickle"):
         self.lr = lr
         self.layers = layers
         self.path = path
